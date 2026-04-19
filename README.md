@@ -1,158 +1,139 @@
-# 🚗 Real-Time Vehicle Telemetry Pipeline (CAN Bus Simulation)
+# CANInsight - Vehicle Diagnostics & Telemetry Intelligence System
 
-A scalable, event-driven data pipeline that simulates vehicle CAN Bus telemetry and processes high-frequency data streams in real time using Apache Kafka.
+CANInsight is a mini onboard diagnostics and performance intelligence system built on simulated vehicle CAN data.
 
----
+Simulates real-world vehicle CAN communication and builds an intelligent layer for diagnostics and performance insights.
 
-## 📖 Overview
+## Problem
 
-This project aims to replicate how modern connected vehicles stream telemetry data (speed, RPM, temperature, etc.) into backend systems for real-time processing and analytics.
+Modern vehicles generate large volumes of ECU communication through CAN messages. Raw CAN frames are not directly useful for engineers or drivers unless they are decoded, analyzed, and translated into actionable insights.
 
-The system is designed as a **distributed streaming pipeline**, where data flows from simulated vehicle sensors -> Kafka -> backend services -> storage/API layers.
+## Goal
 
----
+Build an end-to-end CAN pipeline that:
 
-## ⚙️ Architecture
+1. Reads raw CAN-like logs.
+2. Decodes payload bytes into vehicle signals.
+3. Detects operational issues and behavior anomalies.
+4. Surfaces plain-English diagnostics insights via a dashboard.
+
+## System Architecture
+
+CAN Data -> Decoder -> Signal Extraction -> Analysis Engine -> Insight Engine -> Dashboard
+
+## Core Features
+
+1. CAN Decoder
+        - Input: CAN ID + 8-byte data payload.
+        - Output: speed, RPM, throttle, engine temperature, brake.
+
+2. Signal Extraction
+        - Raw byte mapping to meaningful units.
+        - Demo mapping in `src/decoder.py`:
+          - byte[0:2] -> RPM
+          - byte[2] -> throttle
+          - byte[3] -> speed
+          - byte[4] -> engine temperature
+          - byte[5] -> brake
+
+3. Analysis Engine
+        - Engine health monitoring:
+          - overheat detection
+          - abnormal RPM spike detection
+        - Driving behavior analysis:
+          - aggressive acceleration
+          - harsh braking
+        - Rule-based anomaly detection for sudden jumps.
+
+4. Insight Engine
+        - Converts alerts into plain English summary lines for quick diagnostics interpretation.
+
+5. Dashboard (Streamlit)
+        - Speed vs time graph.
+        - RPM vs time graph.
+        - Alerts panel.
+        - Insights panel.
+
+## Project Structure
 
 ```
-[ CAN Bus Simulator ]
-        ↓
-[ Kafka Producer ]
-        ↓
-[ Kafka Topic: vehicle.telemetry ]
-        ↓
-[ Kafka Consumer / Stream Processor ]
-        ↓
-[ Backend API + Processing Layer ]
-        ↓
-[ PostgreSQL (Planned) / Output ]
-```
-
----
-
-## 🚀 Features
-
-- 📡 Simulated CAN Bus vehicle telemetry (speed, RPM, temperature)
-- ⚡ Real-time streaming using Apache Kafka
-- 🔁 Producer-Consumer architecture
-- 🔍 Basic stream processing & transformation
-- 🌐 REST API for exposing processed telemetry (in progress)
-- 📊 Designed for scalability with partitioning & consumer groups
-
----
-
-## 🛠️ Tech Stack
-
-- **Languages:** Python / JavaScript (extendable to Java)
-- **Streaming:** Apache Kafka
-- **Backend:** Node.js / Express (Spring Boot planned)
-- **Database:** PostgreSQL (planned)
-- **Tools:** Docker (planned)
-
----
-
-## 📂 Project Structure
-
-```
-vehicle-data-pipeline/
-│
-├── producer/
-│   └── telemetry_producer.py
-│
-├── consumer/
-│   └── telemetry_consumer.py
-│
-├── backend/
-│   └── api_server.js
-│
+.
+├── app/
+│   └── dashboard.py
 ├── data/
-│   └── sample_events.json
-│
-├── docker/
-│   └── docker-compose.yml
-│
+│   ├── can_simulated_day1.csv
+│   └── generate_can_data.py
+├── src/
+│   ├── analysis.py
+│   ├── decoder.py
+│   └── insights.py
+├── requirements.txt
 └── README.md
 ```
 
----
+## Day 1 Status
 
-## 🔄 Data Flow
+Completed:
 
-1. Vehicle telemetry is simulated using a producer script
-2. Data is published to Kafka topic `vehicle.telemetry`
-3. Consumer reads and processes incoming events
-4. Processed data is:
-   - Logged
-   - Stored (planned)
-   - Exposed via API (planned)
+1. CANInsight folder structure setup.
+2. Synthetic CAN dataset generator.
+3. Generated dataset (`data/can_simulated_day1.csv`, 1200 rows).
+4. Initial decoder, analysis, insight, and dashboard starter modules.
 
----
+## Day 2 Status
 
-## 📊 Sample Event
+Completed:
 
-```json
-{
-  "vehicle_id": "Ather_450X_01",
-  "speed": 62,
-  "rpm": 3400,
-  "temperature": 36.5,
-  "timestamp": "2026-04-04T10:15:30Z"
-}
-```
+1. Raw payload parser (`data_hex` -> 8 bytes).
+2. Signal extraction pipeline (`decode_dataframe`) from raw CAN CSV.
+3. Streamlit dashboard support for direct raw CAN decoding.
+4. CLI decode pipeline to export signal-level CSV.
 
----
+## Day 3 Status
 
-## 🧠 Key Concepts Explored
+Completed:
 
-- Event-driven architecture
-- Real-time stream processing
-- Kafka topics, partitions, and offsets
-- Consumer groups and scalability
-- Data pipeline reliability & latency optimization
+1. Event-based analysis engine with severity scoring.
+2. Added anomaly detection for sudden signal jumps.
+3. Added trip-level metrics (driving score, event counters, max operating values).
+4. Dashboard now displays Day 3 trip metrics and upgraded alerts.
 
----
+## Quick Start
 
-## 🏗️ Roadmap
-
-- [ ] Integrate PostgreSQL for persistent storage
-- [ ] Add anomaly detection on telemetry streams
-- [ ] Build Spring Boot microservices
-- [ ] Dockerize the entire pipeline
-- [ ] Deploy on cloud (AWS/GCP)
-- [ ] Add dashboard for real-time visualization
-
----
-
-## ▶️ Getting Started
-
-### 1. Start Kafka (Docker recommended)
+1. Install dependencies:
 
 ```bash
-docker-compose up -d
+pip install -r requirements.txt
 ```
 
-### 2. Run Producer
+2. Regenerate synthetic dataset:
 
 ```bash
-python producer/telemetry_producer.py
+python data/generate_can_data.py --rows 1200 --seed 42 --out data/can_simulated_day1.csv
 ```
 
-### 3. Run Consumer
+3. Run dashboard:
 
 ```bash
-python consumer/telemetry_consumer.py
+streamlit run app/dashboard.py
 ```
 
----
+4. Decode raw CAN CSV into a clean signal CSV:
 
-## 🎯 Motivation
+```bash
+python -m src.pipeline --in data/can_simulated_day1.csv --out data/can_decoded_day2.csv
+```
 
-Modern EV platforms rely heavily on real-time data pipelines to monitor vehicle performance, detect anomalies, and improve user experience.
+## 1-Week Execution Plan
 
-This project is an attempt to understand and build such systems from scratch.
+1. Day 1: CAN basics + dataset creation.
+2. Day 2: decoder + signal extraction.
+3. Day 3: analysis engine.
+4. Day 4: insight engine.
+5. Day 5: dashboard.
+6. Day 6: polish, visuals, and demo flow.
+7. Day 7: final README, screenshots, and demo video.
 
----
+## Engineering Impact
 
-## 🤝 Contributions
-
-Open to improvements, optimizations, and architectural suggestions!
+This project demonstrates practical understanding of automotive telemetry workflows: CAN-style data ingestion, signal decoding, diagnostics logic, and operator-facing intelligence.
