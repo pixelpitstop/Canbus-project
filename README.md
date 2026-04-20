@@ -2,7 +2,6 @@
 
 CANInsight is a phase-1 automotive telemetry project that simulates vehicle CAN traffic, decodes raw payloads into signals, runs diagnostics, and presents the result in a dashboard.
 
-This repository is the stable base version. It is designed to look and feel like a real automotive systems project, not a generic ML demo.
 
 ## Problem Statement
 
