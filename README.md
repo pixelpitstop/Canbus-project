@@ -76,7 +76,7 @@ alerts.extend(detect_signal_jumps(df))
 
 Each detector produces structured alerts with severity, category, timestamp, and message.
 
-### 4. Alerts are converted into recruiter-friendly insights
+### 4. Alerts are converted into user-friendly insights
 
 The insight layer turns alerts into human-readable outputs:
 
