@@ -193,7 +193,7 @@ app/dashboard.py
 
 Live app: [https://caninsight.streamlit.app](https://caninsight.streamlit.app)
 
-## Recruiter-Facing Summary
+## Summary
 
 CANInsight simulates real-world vehicle CAN communication, decodes raw payloads, applies diagnostics logic, and builds an intelligent dashboard for vehicle telemetry insights.
 
